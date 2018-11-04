@@ -2,6 +2,7 @@
 import numpy as np
 import pylab as plt
 from keras.datasets import mnist
+from collections import deque
 
 #######################
 
@@ -70,7 +71,7 @@ kernel = kernel / 4.
 #######################
 
 steps = 1500
-T = 20 * 1e-3
+T = 1.
 dt = T / steps
 Ts = np.linspace(0, T, steps)
 
@@ -86,11 +87,18 @@ for ii in range(rows):
     
 #######################
 
-rate = 25 # 25 Hz max
-
+rate = 5 # 25 Hz max
+spks = deque(maxlen=10)
 Is = np.zeros(shape=(rows, cols))
 
 for t in Ts:
+    spk = np.random.rand(30, 30) < img * rate * dt
+    spks.append(spk)
+    # sum or max?
+    spk_img = np.max(spks, axis=0)
+    # make sure its (30, 30)
+    assert(np.shape(spk_img) == (30, 30))
+    
     for ii in range(rows):
         for jj in range(cols):
             
@@ -100,8 +108,7 @@ for t in Ts:
             y1 = jj * 3
             y2 = (jj + 1) * 3
             
-            V = (img[x1:x2, y1:y2] * rate * dt > np.random.rand(3, 3)) * 1.
-            
+            V = spk_img[x1:x2, y1:y2] * 1.
             I = filters[ii][jj].step(V, dt)
             Is[ii][jj] = I
 
