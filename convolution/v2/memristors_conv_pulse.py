@@ -6,12 +6,35 @@ from keras.datasets import mnist
 #######################
 
 # 28x28 -> pad 1 -> 30x30 -> 3x3 filters no stride -> 10x10
-fh = 10
-fw = 10
+rows = 10
+cols = 10
 
 #######################
 
-class Memristors:
+class VMemristors:
+    def __init__(self, size):
+        self.size = size
+        self.U = 1e-16
+        self.D = 10e-9
+        self.W0 = 5e-9
+        self.RON = 4e3
+        self.ROFF = 10e3
+        self.P = 5            
+        self.W = np.ones(shape=(self.size)) * self.W0
+        self.R = self.RON * (self.W / self.D) + self.ROFF * (1 - (self.W / self.D))
+        
+    # def step(self, V, dt):
+    def step(self, I, dt):
+        self.R = self.RON * (self.W / self.D) + self.ROFF * (1 - (self.W / self.D))
+        # I = V / self.R
+        V = I * self.R
+        F = 1 - (2 * (self.W / self.D) - 1) ** (2 * self.P)
+        dwdt = ((self.U * self.RON * I) / self.D) * F
+        dwdt += 0.1 * (self.W0 - self.W)
+        self.W += dwdt * dt
+        return I
+
+class NVMemristors:
     def __init__(self, size, init):
         self.size = size
         self.U = 1e-16
@@ -51,29 +74,50 @@ T = 20 * 1e-3
 dt = T / steps
 Ts = np.linspace(0, T, steps)
 
-Ms = [[None] * fh] * fw
-for ii in range(fw):
-    for jj in range(fh):
-        Ms[ii][jj] = Memristors(size=(3, 3), init=kernel)
+filters = [[None for x in range(cols)] for y in range(rows)] 
+for ii in range(rows):
+    for jj in range(cols):
+        filters[ii][jj] = NVMemristors(size=(3, 3), init=kernel)
+        
+sums = [[None for x in range(cols)] for y in range(rows)] 
+for ii in range(rows):
+    for jj in range(cols):
+        sums[ii][jj] = VMemristors(size=(1))
     
 #######################
 
-Is = np.zeros(shape=(fw, fh))
+Is = np.zeros(shape=(rows, cols))
 
-for ii in range(fw):
-    for jj in range(fh):
-        
-        x1 = ii * 3
-        x2 = (ii + 1) * 3
-        
-        y1 = jj * 3
-        y2 = (jj + 1) * 3
-        
-        V = img[x1:x2, y1:y2]
-        I = Ms[ii][jj].step(V, dt)
-        Is[ii][jj] = I
+for t in Ts:
+    for ii in range(rows):
+        for jj in range(cols):
+            
+            x1 = ii * 3
+            x2 = (ii + 1) * 3
+            
+            y1 = jj * 3
+            y2 = (jj + 1) * 3
+            
+            V = img[x1:x2, y1:y2]
+            I = filters[ii][jj].step(V, dt)
+            Is[ii][jj] = I
 
-plt.imshow(Is, cmap=plt.cm.gray)
+            sums[ii][jj].step(I, dt)
+            
+    print (Is)
+
+#######################
+
+Rs = np.zeros(shape=(rows, cols))
+for ii in range(rows):
+    for jj in range(cols):
+        Rs[ii][jj] = sums[ii][jj].R
+
+#######################
+
+print (Rs)
+
+plt.imshow(Rs, cmap=plt.cm.gray)
 plt.show()
 
 
