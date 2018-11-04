@@ -86,6 +86,8 @@ for ii in range(rows):
     
 #######################
 
+rate = 25 # 25 Hz max
+
 Is = np.zeros(shape=(rows, cols))
 
 for t in Ts:
@@ -98,7 +100,8 @@ for t in Ts:
             y1 = jj * 3
             y2 = (jj + 1) * 3
             
-            V = img[x1:x2, y1:y2]
+            V = (img[x1:x2, y1:y2] * rate * dt > np.random.rand(3, 3)) * 1.
+            
             I = filters[ii][jj].step(V, dt)
             Is[ii][jj] = I
 
