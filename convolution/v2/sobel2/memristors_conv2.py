@@ -21,27 +21,14 @@ fw = 30
 V1, V2, V3, V4, V5, V6, V7, V8, V9 = sympy.symbols('V1, V2, V3, V4, V5, V6, V7, V8, V9')
 R1, R2, R3, R4, R5, R6, R7, R8, R9 = sympy.symbols('R1, R2, R3, R4, R5, R6, R7, R8, R9')
 I = sympy.symbols('I')
-Vx, Vy = sympy.symbols('Vx, Vy')
+Vx = sympy.symbols('Vx')
 Rx = sympy.symbols('Rx')
 
-unknowns = [I, Vx, Vy]
-eq1 = ((V1 - Vx) / R1) + ((V4 - Vx) / R4) + ((V7 - Vx) / R7) - I
-eq2 = ((V3 - Vy) / R3) + ((V6 - Vy) / R6) + ((V9 - Vy) / R9) - I
-eq3 = ((Vx - Vy) / Rx - I)
-solution = sympy.solve([eq1, eq2, eq3], unknowns) 
+unknowns = [I, Vx]
+eq1 = ((V1 - Vx) / R1) + ((V4 - Vx) / R4) + ((V7 - Vx) / R7) - ((V3 - Vx) / R3) - ((V6 - Vx) / R6) - ((V9 - Vx) / R9) - I
+eq2 = (Vx / Rx - I)
+solution = sympy.solve([eq1, eq2], unknowns) 
 
-'''
-print (solution)
-
-subs = {V1:1., V2:1., V3:1., V4:1., V5:1., V6:1., \
-        R1:1., R2:1., R3:1., R4:1., R5:1., R6:1., \
-        Rx:1.
-        }
-
-print (solution[Vx].evalf(subs=subs))
-print (solution[Vy].evalf(subs=subs))
-print (solution[I].evalf(subs=subs))
-'''
 #######################
 class Memristors:
     def __init__(self, size, init):
@@ -75,8 +62,6 @@ else:
 
 #######################
 
-#######################
-
 kernel = np.array([[1,0,-1],[2,0,-2],[1,0,-1]])
 
 #######################
@@ -94,6 +79,10 @@ for ii in range(fw):
 #######################
 
 _Is = np.zeros(shape=(fw, fh))
+
+# x = img[0:14, :]
+# plt.imshow(x, cmap=plt.cm.gray)
+# plt.show()
 
 kernel_size = 3
 for ii in range(fw):
@@ -121,9 +110,6 @@ for ii in range(fw):
                 
         _I = solution[I].evalf(subs=subs)
         _Is[ii][jj] = _I
-
-# plt.imshow(_Is, cmap=plt.cm.gray)
-# plt.show()
 
 if digit:
     plt.imsave("mnist.png", img, cmap=plt.cm.gray) 
