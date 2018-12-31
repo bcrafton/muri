@@ -37,10 +37,8 @@ l1 = FullyConnected((784, 10))
 total = 0
 correct = 0
 
-lastR = l1.weights.R
-R = l1.weights.R
-RON = l1.weights.RON
-ROFF = l1.weights.ROFF
+lastW = 1. / l1.weights.R
+W = 1. / l1.weights.R
 
 for jj in range(TRAIN_EXAMPLES):
     # print (jj)
@@ -49,14 +47,14 @@ for jj in range(TRAIN_EXAMPLES):
     E = Y - y_train[jj]
     DO = l1.backward(x_train[jj], E)
 
-    R = l1.weights.R
-    dR = R - lastR
-    lastR = R 
+    W = 1. / l1.weights.R
+    dW = W - lastW
+    lastW = W
     
     # print (np.max(dR) / RON, np.min(dR) / RON)
     # print (np.max(dR) / ROFF, np.min(dR) / ROFF)
     
-    print (np.std(dR / ROFF))
+    # print (np.std(dW))
 
     if (np.argmax(Y) == np.argmax(y_train[jj])):
         correct += 1
@@ -66,8 +64,7 @@ for jj in range(TRAIN_EXAMPLES):
     if (total % 100 == 0):
         print (1.0 * correct / total)
 
-plt.hist(np.reshape(R, (-1)), bins=np.linspace(RON, ROFF, 100))
-# plt.hist(np.reshape(1. / R, (-1)))
+plt.hist(np.reshape(W, (-1)), bins=np.linspace(1./ROFF, 1./RON, 100))
 plt.show()
     
     

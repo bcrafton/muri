@@ -70,8 +70,8 @@ class FullyConnected:
         # so we want to apply a positive voltage to increase current
         # so we need to subtract E just like before.
         
-        DW = self.lr * _X * _E
-        DB = 0.01 * self.lr * E
+        DW = _X * _E
+        DB = 1e-5 * E
         
         # print (np.std(DB))
         
